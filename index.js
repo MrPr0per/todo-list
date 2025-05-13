@@ -1,4 +1,4 @@
-﻿function createElement(tag, attributes, children, callbacks = {}) { // callbacks: {event: handler}
+﻿function createElement(tag, attributes = {}, children = null, callbacks = {}) { // callbacks: {event: handler}
     const element = document.createElement(tag);
 
     if (attributes) {
@@ -50,8 +50,13 @@ class TodoList extends Component {
                 {text: "Сделать практику", completed: false},
                 {text: "Пойти домой", completed: false}
             ],
-            newTaskText: "" // текс водящейся таски
+            newTaskText: "" // текс водящейся сейчас таски
         };
+
+        this.onAddInputChange = this.onAddInputChange.bind(this);
+        this.onAddTask = this.onAddTask.bind(this);
+        this.onDeleteTask = this.onDeleteTask.bind(this);
+        this.onCompleteTask = this.onCompleteTask.bind(this);
     }
 
     render() {
@@ -62,22 +67,29 @@ class TodoList extends Component {
                     id: "new-todo",
                     type: "text",
                     placeholder: "Задание",
+                    value: this.state.newTaskText
                 }, null, {
-                    input: this.onAddInputChange.bind(this)
+                    input: this.onAddInputChange
                 }),
                 createElement("button", {id: "add-btn"}, "+", {
-                    click: this.onAddTask.bind(this)
+                    click: this.onAddTask
                 }),
             ]),
             createElement("ul", {id: "todos"},
-                this.state.tasks.map((todo) =>
+                this.state.tasks.map((todo, index) =>
                     createElement("li", {}, [
                         createElement("input", {
                             type: "checkbox",
                             ...(todo.completed && {checked: "checked"})
+                        }, null, {
+                            click: () => this.onCompleteTask(index)
                         }),
-                        createElement("label", {}, todo.text),
-                        createElement("button", {}, "🗑️")
+                        createElement("label", {
+                            style: todo.completed ? "color: gray;" : ""
+                        }, todo.text),
+                        createElement("button", {}, "🗑️", {
+                            click: () => this.onDeleteTask(index)
+                        })
                     ])
                 )
             )
@@ -94,6 +106,16 @@ class TodoList extends Component {
 
         this.state.tasks.push({text, completed: false});
         this.state.newTaskText = "";
+        this.update();
+    }
+
+    onDeleteTask(index) {
+        this.state.tasks.splice(index, 1);
+        this.update();
+    }
+
+    onCompleteTask(index) {
+        this.state.tasks[index].completed = !this.state.tasks[index].completed;
         this.update();
     }
 }
