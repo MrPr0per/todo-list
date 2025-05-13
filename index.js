@@ -50,8 +50,8 @@ class TodoList extends Component {
             tasks: [
                 {text: "Сделать домашку", completed: false},
                 {text: "Сделать практику", completed: false},
-                {text: "Пойти домой", completed: false}
-            ]
+                {text: "Пойти домой", completed: false},
+            ],
         };
 
         this.onAddTask = this.onAddTask.bind(this);
@@ -80,9 +80,9 @@ class TodoList extends Component {
             new AddTask(this.onAddTask).getDomNode(),
             createElement("ul", {},
                 this.state.tasks.map((todo, index) =>
-                    new Task(todo, index, this.onToggleTaskCompleted, this.onDeleteTask).getDomNode()
-                )
-            )
+                    new Task(todo, index, this.onToggleTaskCompleted, this.onDeleteTask).getDomNode(),
+                ),
+            ),
         ]);
     }
 }
@@ -110,9 +110,9 @@ class AddTask extends Component {
             createElement("input", {
                 type: "text",
                 placeholder: "Задание",
-                value: this.inputValue
+                value: this.inputValue,
             }, null, {input: this.onInput}),
-            createElement("button", {}, "+", {click: this.onAdd})
+            createElement("button", {}, "+", {click: this.onAdd}),
         ]);
     }
 }
@@ -123,24 +123,50 @@ class Task extends Component {
         this.todo = todo;
         this.index = index;
         this.onToggle = onToggle;
-        this.onDelete = onDelete;
+        this.onDeleteCallback = onDelete
+        this.onDelete = this.onDelete.bind(this);
+
+        this.isNeedToConfirmDelete = true;
+    }
+
+    onDelete() {
+        if (this.isNeedToConfirmDelete) {
+            this.isNeedToConfirmDelete = false;
+            this.update();
+        } else {
+            this.onDeleteCallback();
+        }
     }
 
     render() {
-        return createElement("li", {}, [
+        const children = [
             createElement("input", {
                 type: "checkbox",
-                ...(this.todo.completed && {checked: "checked"})
+                ...(this.todo.completed && {checked: "checked"}),
             }, null, {
-                change: () => this.onToggle(this.index)
+                change: () => this.onToggle(this.index),
             }),
             createElement("label", {
-                style: this.todo.completed ? "color: gray;" : ""
+                style: this.todo.completed ? "color: gray;" : "",
             }, this.todo.text),
-            createElement("button", {}, "🗑️", {
-                click: () => this.onDelete(this.index)
-            })
-        ]);
+            createElement("button", {
+                style: this.isNeedToConfirmDelete ? "" : "background-color: red;",
+            }, "🗑️", {
+                click: () => this.onDelete(this.index),
+            }),
+        ]
+        if (!this.isNeedToConfirmDelete) {
+            children.push(createElement("button", {
+                style: "background-color: red; margin-left:5px;",
+            }, "Отмена", {
+                click: () => {
+                    this.isNeedToConfirmDelete = true;
+                    this.update();
+                },
+            }))
+        }
+
+        return createElement("li", null, children);
     }
 }
 
