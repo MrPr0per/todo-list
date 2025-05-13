@@ -44,33 +44,44 @@ class Component {
 }
 
 class TodoList extends Component {
+    static storageKey = "todo-list-tasks";
+
     constructor() {
         super();
+        const savedTasks = localStorage.getItem(TodoList.storageKey);
         this.state = {
-            tasks: [
+            tasks: savedTasks ? JSON.parse(savedTasks) : [
                 {text: "Сделать домашку", completed: false},
                 {text: "Сделать практику", completed: false},
                 {text: "Пойти домой", completed: false},
             ],
         };
 
+        this.saveState = this.saveState.bind(this);
         this.onAddTask = this.onAddTask.bind(this);
         this.onDeleteTask = this.onDeleteTask.bind(this);
         this.onToggleTaskCompleted = this.onToggleTaskCompleted.bind(this);
     }
 
+    saveState() {
+        localStorage.setItem(TodoList.storageKey, JSON.stringify(this.state.tasks));
+    }
+
     onAddTask(text) {
         this.state.tasks.push({text, completed: false});
+        this.saveState();
         this.update();
     }
 
     onDeleteTask(index) {
         this.state.tasks.splice(index, 1);
+        this.saveState();
         this.update();
     }
 
     onToggleTaskCompleted(index) {
         this.state.tasks[index].completed = !this.state.tasks[index].completed;
+        this.saveState();
         this.update();
     }
 
@@ -129,12 +140,12 @@ class Task extends Component {
         this.isNeedToConfirmDelete = true;
     }
 
-    onDelete() {
+    onDelete(index) {
         if (this.isNeedToConfirmDelete) {
             this.isNeedToConfirmDelete = false;
             this.update();
         } else {
-            this.onDeleteCallback();
+            this.onDeleteCallback(index);
         }
     }
 
